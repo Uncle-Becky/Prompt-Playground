@@ -38,9 +38,9 @@ export class Branch {
     // 3) Invoke tool
     let toolResult: any;
     const tool = toolRegistry[toolName as keyof typeof toolRegistry];
-    if (tool) {
+    try {
       // Type-safe tool execution with proper argument casting
-      switch (toolName) {
+      switch(toolName) {
         case 'get_rhymes_and_near_rhymes':
           toolResult = await toolRegistry.get_rhymes_and_near_rhymes(args as GetRhymesArgs);
           break;
@@ -53,8 +53,8 @@ export class Branch {
         default:
           toolResult = `Tool '${toolName}' not found`;
       }
-    } else {
-      toolResult = `Tool '${toolName}' not found`;
+    } catch (error) {
+      toolResult = `Tool '${toolName}' failed: ${error instanceof Error ? error.message : String(error)}`;
     }
 
     // 4) Store local result
@@ -84,7 +84,7 @@ export class Branch {
 
   // Build naive argument sets.
   // In a real system, you'd tailor them to the focus.
-  private buildToolArgs(toolName: string): Record<string, any> {
+  private buildToolArgs(toolName: string): GetRhymesArgs | AnalyzeToneArgs | SuggestDeviceArgs {
     switch(toolName) {
       case "get_rhymes_and_near_rhymes":
         return {
@@ -105,7 +105,7 @@ export class Branch {
           emotional_tone: "longing"
         };
       default:
-        return {};
+        throw new Error(`Unknown tool: ${toolName}`);
     }
   }
 }

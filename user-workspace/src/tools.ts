@@ -12,13 +12,12 @@ export interface GetRhymesArgs {
 }
 
 // Example interface for emotional tone analysis
-interface AnalyzeToneArgs {
+export interface AnalyzeToneArgs {
   text: string;
   expected_emotion?: string;
 }
 
-// Example interface for rhetorical device suggestions
-interface SuggestDeviceArgs {
+export interface SuggestDeviceArgs {
   device_type: string;
   concept: string;
   emotional_tone: string;

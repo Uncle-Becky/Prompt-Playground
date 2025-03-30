@@ -17,11 +17,7 @@ const systemInstruction = `# System Prompt:\nMulti-agent tree-of-thought orchest
 
 // 4) Create a generative model instance
 const model: GenerativeModel = genAI.getGenerativeModel({
-  model: "gemini-2.5-pro-exp-03-25",
-  systemInstruction,
-  tools: [
-    { codeExecution: {} },
-  ],
+  model: "gemini-pro",
 });
 
 // 5) Optional Generation Config
@@ -29,8 +25,7 @@ const generationConfig: GenerationConfig = {
   temperature: 0.7,
   topP: 0.9,
   topK: 64,
-  maxOutputTokens: 65536,
-  responseMimeType: "text/plain",
+  maxOutputTokens: 2048
 };
 
 // 6) Invoke the Orchestration
