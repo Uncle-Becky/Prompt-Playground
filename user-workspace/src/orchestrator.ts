@@ -1,43 +1,49 @@
-import { runAgent } from "./agent";
-import { Branch } from "./branch";
+import { Agent } from "./agent";
 import { AgentName } from "./memory";
 
-/**
- * Gathers all agent branches, merges them into a final result.
- */
-export function mergeResults(agentResults: Record<AgentName, Branch[]>) {
-  const insights: string[] = [];
+export class Orchestrator {
+  private agents: Map<AgentName, Agent> = new Map();
+  private focusQueue: string[] = [];
+  private isProcessing = false;
 
-  for (const agent in agentResults) {
-    const castAgent = agent as AgentName;
-    const branches = agentResults[castAgent];
-    for(const branch of branches) {
-      if(branch.result) {
-        insights.push(
-          `[${agent}] => ${branch.result.insight}\n` +
-          `ToolResult: ${JSON.stringify(branch.result.toolResult, null, 2)}`
-        );
-      }
+  constructor() {
+    this.initializeAgents();
+  }
+
+  private initializeAgents() {
+    // Create agents with their specialized expertise
+    this.agents.set('linguistic', new Agent('linguistic', 'language analysis'));
+    this.agents.set('emotional', new Agent('emotional', 'emotional tone analysis'));
+    this.agents.set('structural', new Agent('structural', 'composition structure'));
+  }
+
+  public async addFocus(focus: string): Promise<void> {
+    this.focusQueue.push(focus);
+    if (!this.isProcessing) {
+      await this.processQueue();
     }
   }
 
-  return insights.join("\n\n");
-}
-
-/**
- * Orchestrates the agents in parallel or sequence and merges results.
- */
-export async function orchestrateAgents(agents: AgentName[] = ["Analyst", "Critic", "Visionary"]): Promise<string> {
-  const agentResults: Record<AgentName, Branch[]> = {
-    Analyst: [],
-    Critic: [],
-    Visionary: []
-  };
-
-  for(const agent of agents) {
-    agentResults[agent] = await runAgent(agent);
+  private async processQueue(): Promise<void> {
+    this.isProcessing = true;
+    while (this.focusQueue.length > 0) {
+      const focus = this.focusQueue.shift()!;
+      await this.distributeFocus(focus);
+    }
+    this.isProcessing = false;
   }
 
-  const finalMerged = mergeResults(agentResults);
-  return finalMerged;
+  private async distributeFocus(focus: string): Promise<void> {
+    const agentPromises = Array.from(this.agents.values()).map(agent => 
+      agent.processFocus(focus)
+    );
+    await Promise.all(agentPromises);
+  }
+
+  public getStatus() {
+    return {
+      queueLength: this.focusQueue.length,
+      agents: Array.from(this.agents.values()).map(agent => agent.getStatus())
+    };
+  }
 }
