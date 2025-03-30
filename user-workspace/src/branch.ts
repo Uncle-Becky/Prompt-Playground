@@ -1,19 +1,17 @@
-//=== File: src/branch.js
+import { toolRegistry } from "./tools";
+import { AgentName, updateMemory } from "./memory";
+
 /**
- * Represents a single Branch of reasoning or exploration.
- * Each Branch belongs to one Agent, has a focus, can invoke exactly one tool, and updates memory.
+ * Represents one branch of reasoning.
  */
+export class Branch {
+  private agent: AgentName;
+  private focus: string;
+  private depth: number;
+  public resolved: boolean;
+  public result: { toolResult: any; insight: string } | null;
 
-const { toolRegistry } = require("./tools");
-const { updateMemory } = require("./memory");
-
-class Branch {
-  /**
-   * @param {string} agent - agent name e.g. "Analyst", "Critic", "Visionary"
-   * @param {string} focus - short description of the question or angle
-   * @param {number} depth - branch depth, 0-based
-   */
-  constructor(agent, focus, depth = 0) {
+  constructor(agent: AgentName, focus: string, depth = 0) {
     this.agent = agent;
     this.focus = focus;
     this.depth = depth;
@@ -22,33 +20,36 @@ class Branch {
   }
 
   /**
-   * Resolves the branch by selecting a tool, building args, invoking it,
-   * and storing the result in memory.
+   * Resolves this branch by:
+   * 1) selecting a tool
+   * 2) building arguments
+   * 3) invoking the tool
+   * 4) updating memory
    */
-  async resolve() {
+  public async resolve(): Promise<void> {
     console.log(`[${this.agent}] Resolving Branch: ${this.focus}, Depth: ${this.depth}`);
 
-    // 1) Select a tool (in a real system, you might pick based on focus or context)
+    // 1) Tool selection (naive approach)
     const toolName = this.selectTool();
 
-    // 2) Build arguments for the tool
+    // 2) Build arguments
     const args = this.buildToolArgs(toolName);
 
-    // 3) Invoke the tool
-    let toolResult;
+    // 3) Invoke tool
+    let toolResult: any;
     if(toolRegistry[toolName]) {
       toolResult = await toolRegistry[toolName](args);
     } else {
-      toolResult = `Tool '${toolName}' not found.`;
+      toolResult = `Tool '${toolName}' not found`;
     }
 
-    // 4) Store result
+    // 4) Store local result
     this.result = {
       toolResult,
       insight: `Resolved focus: ${this.focus} with tool: ${toolName}`
     };
 
-    // 5) Update Memory
+    // 5) Update memory
     updateMemory(this.agent, {
       focus: this.focus,
       tool: toolName,
@@ -57,19 +58,19 @@ class Branch {
       timestamp: Date.now()
     });
 
-    // Mark as resolved
     this.resolved = true;
   }
 
-  // === Example naive tool selection (random or simplistic) ===
-  selectTool() {
+  // Simple random selection from the tool registry
+  private selectTool(): string {
     const tools = Object.keys(toolRegistry);
-    const randomIndex = Math.floor(Math.random() * tools.length);
-    return tools[randomIndex];
+    const randIndex = Math.floor(Math.random() * tools.length);
+    return tools[randIndex];
   }
 
-  // === Example naive argument builder based on the tool name ===
-  buildToolArgs(toolName) {
+  // Build naive argument sets.
+  // In a real system, you'd tailor them to the focus.
+  private buildToolArgs(toolName: string): Record<string, any> {
     switch(toolName) {
       case "get_rhymes_and_near_rhymes":
         return {
@@ -94,7 +95,3 @@ class Branch {
     }
   }
 }
-
-module.exports = {
-  Branch
-};
