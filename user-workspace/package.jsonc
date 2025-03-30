@@ -2,12 +2,20 @@
     "name": "tree-of-thought-orchestrator",
     "version": "1.0.0",
     "description": "Multi-agent Tree-of-Thought architecture using Gemini.",
-    "main": "src/index.js",
+    "main": "dist/index.js",
     "scripts": {
-      "start": "node src/index.js"
+      "start": "ts-node src/index.ts",
+      "build": "tsc",
+      "dev": "ts-node-dev src/index.ts"
     },
     "dependencies": {
-      "@google/generative-ai": "^0.1.0",   // Adjust to latest version
+      "@google/generative-ai": "^0.1.0",
       "mime-types": "^2.1.35"
+    },
+    "devDependencies": {
+      "typescript": "^5.0.0",
+      "ts-node": "^10.9.0",
+      "ts-node-dev": "^2.0.0",
+      "@types/node": "^20.0.0"
     }
-  }
+}
