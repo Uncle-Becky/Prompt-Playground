@@ -37,8 +37,22 @@ export class Branch {
 
     // 3) Invoke tool
     let toolResult: any;
-    if(toolRegistry[toolName]) {
-      toolResult = await toolRegistry[toolName](args);
+    const tool = toolRegistry[toolName as keyof typeof toolRegistry];
+    if (tool) {
+      // Type-safe tool execution with proper argument casting
+      switch (toolName) {
+        case 'get_rhymes_and_near_rhymes':
+          toolResult = await toolRegistry.get_rhymes_and_near_rhymes(args as GetRhymesArgs);
+          break;
+        case 'analyze_emotional_tone':
+          toolResult = await toolRegistry.analyze_emotional_tone(args as AnalyzeToneArgs);
+          break;
+        case 'suggest_rhetorical_device':
+          toolResult = await toolRegistry.suggest_rhetorical_device(args as SuggestDeviceArgs);
+          break;
+        default:
+          toolResult = `Tool '${toolName}' not found`;
+      }
     } else {
       toolResult = `Tool '${toolName}' not found`;
     }
