@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Playground</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .editor-container {
+            height: calc(100vh - 200px);
+        }
+        .output-stream {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        .history-item:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <nav class="bg-white dark:bg-gray-800 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold text-indigo-600 dark:text-indigo-400">LLM Agent Playground</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Dashboard</a>
+                    <a href="playground.html" class="px-3 py-2 rounded-md text-sm font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300">Playground</a>
+                    <a href="settings.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Settings</a>
+                    <a href="docs.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Docs</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Main Editor Area -->
+            <div class="flex-1">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                        <div class="flex items-center space-x-4">
+                            <h3 class="text-lg font-medium text-gray-800 dark:text-white">Prompt Editor</h3>
+                            <div class="relative">
+                                <select id="model-selector" class="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white py-1 px-3 pr-8 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="claude">Claude</option>
+                                    <option value="gemini">Gemini 2.5 Pro</option>
+                                    <option value="openai" selected>OpenAI</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="clear-btn" class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                                <i class="fas fa-trash mr-1"></i> Clear
+                            </button>
+                            <button id="run-btn" class="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+                                <i class="fas fa-play mr-1"></i> Run
+                            </button>
+                        </div>
+                    </div>
+                    <div class="editor-container">
+                        <textarea id="prompt-editor" class="w-full h-full p-4 text-gray-800 dark:text-white bg-white dark:bg-gray-800 focus:outline-none resize-none" placeholder="Enter your prompt here..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Advanced Options -->
+                <div class="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-medium text-gray-800 dark:text-white">Advanced Options</h3>
+                    </div>
+                    <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Temperature</label>
+                            <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.7" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <span>Precise</span>
+                                <span>Creative</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Tokens</label>
+                            <input type="number" id="max-tokens" min="100" max="4000" value="1000" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">System Prompt</label>
+                            <select id="system-prompt" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-white">
+                                <option value="default">Default</option>
+                                <option value="creative">Creative Writer</option>
+                                <option value="technical">Technical Expert</option>
+                                <option value="concise">Concise Responder</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Output Area -->
+                <div class="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                        <h3 class="text-lg font-medium text-gray-800 dark:text-white">Model Output</h3>
+                        <div class="flex space-x-2">
+                            <button id="copy-output" class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                                <i class="fas fa-copy mr-1"></i> Copy
+                            </button>
+                            <button id="save-output" class="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+                                <i class="fas fa-save mr-1"></i> Save
+                            </button>
+                        </div>
+                    </div>
+                    <div class="editor-container p-4">
+                        <div id="output-display" class="w-full h-full text-gray-800 dark:text-white overflow-auto">
+                            <div class="output-stream flex items-center text-gray-500 dark:text-gray-400">
+                                <i class="fas fa-circle-notch fa-spin mr-2"></i>
+                                <span>Waiting for input... Run a prompt to see results</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Sidebar -->
+            <div class="lg:w-80">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                        <h3 class="text-lg font-medium text-gray-800 dark:text-white">History</h3>
+                        <button id="clear-history" class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">
+                            Clear All
+                        </button>
+                    </div>
+                    <div class="h-96 overflow-y-auto">
+                        <div class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <!-- History items will be dynamically inserted here -->
+                            <div class="p-4 history-item cursor-pointer">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-800 dark:text-white truncate">Explain quantum computing...</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">2 minutes ago</p>
+                                    </div>
+                                    <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">OpenAI</span>
+                                </div>
+                            </div>
+                            <div class="p-4 history-item cursor-pointer">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-800 dark:text-white truncate">Write Python script for sentiment analysis...</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">15 minutes ago</p>
+                                    </div>
+                                    <span class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Claude</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model Comparison -->
+                <div class="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-medium text-gray-800 dark:text-white">Model Comparison</h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500 dark:bg-gray-700">
+                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Compare with Claude</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500 dark:bg-gray-700">
+                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Compare with Gemini</span>
+                                </label>
+                            </div>
+                            <button id="run-comparison" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+                                Run Comparison
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
