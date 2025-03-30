@@ -1,4 +1,4 @@
-import { toolRegistry } from "./tools";
+import { toolRegistry, GetRhymesArgs, AnalyzeToneArgs, SuggestDeviceArgs } from "./tools";
 import { AgentName, updateMemory } from "./memory";
 
 /**

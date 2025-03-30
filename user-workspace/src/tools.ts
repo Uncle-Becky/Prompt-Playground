@@ -4,7 +4,7 @@
  */
 
 // Example interface for arguments to get rhymes
-interface GetRhymesArgs {
+export interface GetRhymesArgs {
   word: string;
   context_theme?: string;
   syllable_target?: number;
