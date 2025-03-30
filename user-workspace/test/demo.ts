@@ -16,7 +16,7 @@ async function runDemo() {
 
   // Get and display results
   const results = orchestrator.getStatus();
-  logger.log('demo', 'info', 'Orchestration completed', results);
+  logger.log('linguistic', 'info', 'Orchestration completed', results);
 }
 
 runDemo().catch(err => {
