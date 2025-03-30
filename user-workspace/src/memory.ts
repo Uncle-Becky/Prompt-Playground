@@ -7,13 +7,14 @@ export type MemoryRecord = {
 };
 
 // Agents
-export type AgentName = "Analyst" | "Critic" | "Visionary";
+export type AgentName = "linguistic" | "emotional" | "structural" | "orchestrator";
 
 // In-memory storage
 const agentMemory: Record<AgentName, MemoryRecord[]> = {
-  Analyst: [],
-  Critic: [],
-  Visionary: [],
+  linguistic: [],
+  emotional: [],
+  structural: [],
+  orchestrator: [],
 };
 
 /**

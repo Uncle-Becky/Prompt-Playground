@@ -1,5 +1,5 @@
 import { GenerativeModel, GenerationConfig } from "@google/generative-ai";
-import { orchestrateAgents } from "./orchestrator";
+import { Orchestrator } from "./orchestrator";
 
 /**
  * This function can integrate your LLM model calls, or simply orchestrate the agents.
@@ -9,11 +9,13 @@ export async function runOrchestration(model: GenerativeModel, config: Generatio
 
   // You could do something with `model` or `config` here if desired.
 
-  // For now, we just orchestrate.
-  const finalMerged = await orchestrateAgents();
+  // Initialize and run orchestrator
+  const orchestrator = new Orchestrator();
+  await orchestrator.addFocus("Analyze this poem's structure and emotional tone");
+  
+  const results = orchestrator.getStatus();
+  console.log("\n=== ORCHESTRATION COMPLETE ===\n");
+  console.log(results);
 
-  console.log("\n=== FINAL MERGED RESULTS ===\n");
-  console.log(finalMerged);
-
-  return finalMerged;
+  return JSON.stringify(results);
 }

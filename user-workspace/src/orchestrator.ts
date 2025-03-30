@@ -1,4 +1,5 @@
 import { Agent } from "./agent";
+import { Logger } from "./logger";
 import { AgentName } from "./memory";
 
 export class Orchestrator {
@@ -25,7 +26,10 @@ export class Orchestrator {
   }
 
   private async processQueue(): Promise<void> {
+    const logger = Logger.getInstance();
     this.isProcessing = true;
+    logger.log('orchestrator', 'info', 'Processing focus queue', { queueLength: this.focusQueue.length });
+    
     while (this.focusQueue.length > 0) {
       const focus = this.focusQueue.shift()!;
       await this.distributeFocus(focus);

@@ -1,5 +1,6 @@
 import { Branch } from "./branch";
 import { AgentName } from "./memory";
+import { Logger } from "./logger";
 import { updateMemory } from "./memory";
 
 export class Agent {
@@ -22,17 +23,23 @@ export class Agent {
     const branch = new Branch(this.name, focus, depth);
     this.currentBranches.push(branch);
     
+    const logger = Logger.getInstance();
     try {
+      logger.log(this.name, 'info', `Processing focus`, { focus, depth });
       await branch.resolve();
       
       // Process child branches if needed
       if (branch.result && typeof branch.result.toolResult === 'object') {
+        logger.log(this.name, 'debug', 'Processing sub-focuses', branch.result.toolResult);
         for (const subFocus of this.getSubFocuses(branch.result.toolResult)) {
           await this.processFocus(subFocus, depth + 1);
         }
       }
     } catch (error) {
-      console.error(`[${this.name}] Error processing focus: ${focus}`, error);
+      logger.log(this.name, 'error', 'Failed to process focus', { 
+        focus, 
+        error: error instanceof Error ? error.message : String(error) 
+      });
     } finally {
       this.currentBranches = this.currentBranches.filter(b => b !== branch);
     }
